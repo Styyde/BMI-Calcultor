@@ -93,7 +93,8 @@ backend/application-secret.yml
 *.tmp
 *.temp
 *.bak
-
+.idea/
+.vscode/
 # Coverage
 **/coverage/
 EOF
