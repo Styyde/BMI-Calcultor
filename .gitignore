@@ -1,0 +1,99 @@
+# Backend
+**/target/
+**/*.class
+**/*.log
+**/*.mv.db
+**/*.trace.db
+
+# Frontend
+**/node_modules/
+**/dist/
+**/.env
+**/.env.local
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+
+# Temp files
+*.tmp
+*.temp
+
+# Créer/modifier le .gitignore à la racine
+cat > .gitignore << 'EOF'
+# IDE
+.idea/
+.vscode/
+*.iml
+.settings/
+.project
+.classpath
+.springBeans
+.sts4-cache
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Database (H2)
+*.mv.db
+*.trace.db
+h2-console/
+
+# Backend - compiled files
+**/target/
+**/classes/
+**/*.class
+
+# Backend - secrets (IMPORTANT)
+backend/application-prod.yml
+backend/application-secret.yml
+**/application-secret.yml
+
+# Frontend - dependencies
+**/node_modules/
+**/.pnpm-store/
+
+# Frontend - build
+**/dist/
+**/dist-ssr/
+**/build/
+**/.vite/
+
+# Frontend - environment variables
+**/.env
+**/.env.local
+**/.env.production
+**/.env.development
+
+# Frontend - cache
+**/.cache/
+**/.parcel-cache/
+**/.turbo/
+
+# Maven wrapper (optionnel - à garder souvent)
+# !/mvnw
+# !/mvnw.cmd
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Coverage
+**/coverage/
+EOF
