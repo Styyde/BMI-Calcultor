@@ -2,27 +2,32 @@ package com.example.backend.bmicalculator.controller;
 
 import com.example.backend.bmicalculator.dto.BmiRequest;
 import com.example.backend.bmicalculator.dto.BmiResponse;
+import com.example.backend.bmicalculator.entity.User;
 import com.example.backend.bmicalculator.repository.projection.BmiStatsProjection;
+import com.example.backend.bmicalculator.security.UserPrincipal;
 import com.example.backend.bmicalculator.service.BmiService;
+import com.example.backend.bmicalculator.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/bmi")
+@RequiredArgsConstructor  // ← Ajouté pour l'injection automatique
 public class BmiController {
 
     private final BmiService bmiService;
-
-    public BmiController(BmiService bmiService) {
-        this.bmiService = bmiService;
-    }
+    private final UserService userService;  // ← Ajouté pour récupérer l'utilisateur
 
     /**
      * Calcule l'IMC à partir des données métriques (kg, cm).
+     * Supporte à la fois les utilisateurs authentifiés et anonymes.
      *
      * @param request Poids (20-300kg) et taille (100-250cm)
      * @param httpRequest Requête HTTP pour extraire l'IP
@@ -34,7 +39,10 @@ public class BmiController {
             HttpServletRequest httpRequest) {
 
         String ip = extractClientIp(httpRequest);
-        BmiResponse response = bmiService.calculateAndSave(request, ip);
+        User currentUser = getCurrentUser();  // ← Récupère l'utilisateur connecté (ou null)
+
+        // ✅ Appel avec support utilisateur
+        BmiResponse response = bmiService.calculateAndSave(request, ip, currentUser);
         return ResponseEntity.ok(response);
     }
 
@@ -55,12 +63,17 @@ public class BmiController {
             HttpServletRequest httpRequest) {
 
         String ip = extractClientIp(httpRequest);
-        BmiResponse response = bmiService.calculateAndSaveImperial(weightLbs, heightFt, heightIn, ip);
+        User currentUser = getCurrentUser();
+
+        // ✅ Appel avec support utilisateur
+        BmiResponse response = bmiService.calculateAndSaveImperial(weightLbs, heightFt, heightIn, ip, currentUser);
         return ResponseEntity.ok(response);
     }
 
     /**
-     * Récupère l'historique des calculs pour l'utilisateur (basé sur l'IP).
+     * Récupère l'historique des calculs.
+     * - Si utilisateur connecté → historique basé sur son compte
+     * - Si anonyme → historique basé sur l'adresse IP
      *
      * @param limit Nombre maximum d'entrées (défaut: 10)
      * @param httpRequest Requête HTTP pour extraire l'IP
@@ -72,12 +85,16 @@ public class BmiController {
             HttpServletRequest httpRequest) {
 
         String ip = extractClientIp(httpRequest);
-        List<BmiResponse> history = bmiService.getHistory(ip, limit);
+        User currentUser = getCurrentUser();
+
+        // ✅ Appel avec support utilisateur (priorité à user_id si connecté)
+        List<BmiResponse> history = bmiService.getHistory(ip, currentUser, limit);
         return ResponseEntity.ok(history);
     }
 
     /**
      * Récupère les statistiques globales toutes catégories confondues.
+     * Accessible même sans authentification.
      *
      * @return Statistiques agrégées par catégorie IMC
      */
@@ -111,19 +128,35 @@ public class BmiController {
         for (String header : headers) {
             String ip = request.getHeader(header);
             if (ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip)) {
-                // Prend la première IP si plusieurs (cas des proxys)
                 return ip.split(",")[0].trim();
             }
         }
 
-        // Fallback sur l'adresse distante
         String remoteAddr = request.getRemoteAddr();
-
-        // Normalise l'IPv6 localhost
         if ("0:0:0:0:0:0:0:1".equals(remoteAddr)) {
             return "127.0.0.1";
         }
-
         return remoteAddr;
+    }
+
+    /**
+     * Récupère l'utilisateur actuellement authentifié.
+     * Retourne null si l'utilisateur n'est pas connecté.
+     *
+     * @return User ou null
+     */
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        // Vérifie si l'utilisateur est authentifié et n'est pas un utilisateur anonyme
+        if (authentication != null &&
+                authentication.isAuthenticated() &&
+                !"anonymousUser".equals(authentication.getPrincipal())) {
+
+            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            return userService.findById(userPrincipal.getId());
+        }
+
+        return null;
     }
 }

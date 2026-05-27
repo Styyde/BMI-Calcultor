@@ -1,0 +1,38 @@
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      connection-timeout: 10000
+      maximum-pool-size: 20
+      minimum-idle: 10
+      idle-timeout: 300000
+      max-lifetime: 600000
+      leak-detection-threshold: 30000
+      validation-timeout: 5000
+  jpa:
+    hibernate:
+      ddl-auto: validate  # Jamais 'update' en production !
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        generate_statistics: false
+        jdbc:
+          batch_size: 30
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.bmi: INFO
+    org.springframework.web: WARN
+    org.hibernate: WARN

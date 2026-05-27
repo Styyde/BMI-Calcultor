@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getHistory } from "@/api/bmi";
 import { USE_MOCKS } from "@/api/config";
+import { getToken } from "@/lib/auth-storage";
 import { mockHistory } from "@/lib/mock-data";
 
 export function useBmiHistory(limit = 10) {
@@ -13,6 +14,7 @@ export function useBmiHistory(limit = 10) {
       }
       return getHistory(limit);
     },
+    enabled: USE_MOCKS || !!getToken(),
     placeholderData: USE_MOCKS ? mockHistory : undefined,
   });
 }

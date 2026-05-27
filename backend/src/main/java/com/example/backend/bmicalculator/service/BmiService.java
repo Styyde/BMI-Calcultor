@@ -3,6 +3,7 @@ package com.example.backend.bmicalculator.service;
 import com.example.backend.bmicalculator.dto.BmiRequest;
 import com.example.backend.bmicalculator.dto.BmiResponse;
 import com.example.backend.bmicalculator.entity.BmiRecord;
+import com.example.backend.bmicalculator.entity.User;
 import com.example.backend.bmicalculator.model.BmiCategory;
 import com.example.backend.bmicalculator.repository.BmiRepository;
 import com.example.backend.bmicalculator.repository.projection.BmiStatsProjection;
@@ -21,8 +22,9 @@ public class BmiService {
         this.bmiRepository = bmiRepository;
     }
 
+    // ✅ Méthode principale avec support utilisateur (peut être null)
     @Transactional
-    public BmiResponse calculateAndSave(BmiRequest request, String ipAddress) {
+    public BmiResponse calculateAndSave(BmiRequest request, String ipAddress, User user) {
 
         double heightM = request.getHeight() / 100.0;
         double bmi = round(request.getWeight() / (heightM * heightM));
@@ -32,7 +34,9 @@ public class BmiService {
         double minIdealWeight = BmiCategory.calculateMinIdealWeightKg(heightM);
         double maxIdealWeight = BmiCategory.calculateMaxIdealWeightKg(heightM);
 
+        // ✅ Utiliser le constructeur AVEC user (peut être null)
         BmiRecord record = new BmiRecord(
+                user,        // ← NOUVEAU : l'utilisateur connecté (ou null)
                 ipAddress,
                 request.getWeight(),
                 request.getHeight(),
@@ -55,23 +59,50 @@ public class BmiService {
                 .build();
     }
 
+    // ✅ Version sans user (pour compatibilité, mais à éviter)
+    @Transactional
+    public BmiResponse calculateAndSave(BmiRequest request, String ipAddress) {
+        return calculateAndSave(request, ipAddress, null);
+    }
+
     @Transactional
     public BmiResponse calculateAndSaveImperial(double weightLbs, int heightFt, int heightIn,
-                                                String ipAddress) {
+                                                String ipAddress, User user) {
         double weightKg = BmiCategory.poundsToKg(weightLbs);
         double heightCm = BmiCategory.feetInchesToCm(heightFt, heightIn);
 
         BmiRequest request = new BmiRequest(weightKg, heightCm);
-        return calculateAndSave(request, ipAddress);
+        return calculateAndSave(request, ipAddress, user);
     }
 
-    public List<BmiResponse> getHistory(String ipAddress, int limit) {
-        List<BmiRecord> records = bmiRepository.findTop10ByIpAddressOrderByCalculatedAtDesc(ipAddress);
+    // ✅ Version sans user pour compatibilité
+    @Transactional
+    public BmiResponse calculateAndSaveImperial(double weightLbs, int heightFt, int heightIn,
+                                                String ipAddress) {
+        return calculateAndSaveImperial(weightLbs, heightFt, heightIn, ipAddress, null);
+    }
+
+    // ✅ Méthode getHistory qui supporte user (priorité sur IP)
+    public List<BmiResponse> getHistory(String ipAddress, User user, int limit) {
+        List<BmiRecord> records;
+
+        if (user != null) {
+            // Utilisateur connecté : on récupère son historique par user_id
+            records = bmiRepository.findTop10ByUserIdOrderByCalculatedAtDesc(user.getId());
+        } else {
+            // Non connecté : fallback sur l'adresse IP
+            records = bmiRepository.findTop10ByIpAddressOrderByCalculatedAtDesc(ipAddress);
+        }
 
         return records.stream()
                 .limit(limit)
                 .map(this::toBmiResponse)
                 .collect(Collectors.toList());
+    }
+
+    // ✅ Version sans user pour compatibilité
+    public List<BmiResponse> getHistory(String ipAddress, int limit) {
+        return getHistory(ipAddress, null, limit);
     }
 
     public List<BmiStatsProjection> getStats() {

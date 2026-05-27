@@ -1,7 +1,12 @@
-import { Activity } from "lucide-react";
+import { Activity, LogOut } from "lucide-react";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthProvider";
+import { USE_MOCKS } from "@/api/config";
 
 export function Header() {
+  const { isAuthenticated, logout, user } = useAuth();
+
   return (
     <header className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-3">
@@ -13,11 +18,25 @@ export function Header() {
             BMI Health Dashboard
           </h1>
           <p className="text-sm text-muted-foreground">
-            Premium body mass index insights
+            {user
+              ? `Welcome, ${user.firstName}`
+              : "Premium body mass index insights"}
           </p>
         </div>
       </div>
-      <ThemeToggle />
+      <div className="flex items-center gap-2">
+        {isAuthenticated && !USE_MOCKS && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => void logout()}
+            aria-label="Sign out"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
+        )}
+        <ThemeToggle />
+      </div>
     </header>
   );
 }

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor  // ← Important pour le constructeur avec paramètres
 public class BmiRequest {
 
     @NotNull(message = "Le poids est obligatoire")

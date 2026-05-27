@@ -4,7 +4,7 @@ import {
   calculateMetric,
 } from "@/api/bmi";
 import { toastApiError } from "@/api/errors";
-import type { BmiResponse, CalculateInput } from "@/api/types";
+import type { BmiCategory, BmiResponse, CalculateInput } from "@/api/types";
 import { mockBmiResult } from "@/lib/mock-data";
 import { USE_MOCKS } from "@/api/config";
 
@@ -22,7 +22,7 @@ async function calculate(input: CalculateInput): Promise<BmiResponse> {
               10,
           ) / 10;
 
-    let category = "NORMAL";
+    let category: BmiCategory = "NORMAL";
     let label = "Poids normal";
     let color = "#2ecc71";
     let advice =

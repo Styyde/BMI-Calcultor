@@ -5,7 +5,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "bmi_records", indexes = {
-        @Index(name = "idx_ip_calculated_at", columnList = "ip_address, calculated_at DESC")
+        @Index(name = "idx_ip_calculated_at", columnList = "ip_address, calculated_at DESC"),
+        @Index(name = "idx_user_id", columnList = "user_id")
 })
 public class BmiRecord {
 
@@ -31,6 +32,11 @@ public class BmiRecord {
     @Column(name = "calculated_at", nullable = false, updatable = false)
     private LocalDateTime calculatedAt;
 
+    // ✅ Correction : L'annotation doit être sur le champ user
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;  // ← Ce champ manquait !
+
     @PrePersist
     protected void onCreate() {
         this.calculatedAt = LocalDateTime.now();
@@ -41,6 +47,17 @@ public class BmiRecord {
 
     public BmiRecord(String ipAddress, Double weightKg, Double heightCm,
                      Double bmiValue, String category) {
+        this.ipAddress = ipAddress;
+        this.weightKg = weightKg;
+        this.heightCm = heightCm;
+        this.bmiValue = bmiValue;
+        this.category = category;
+    }
+
+    // ✅ Constructeur avec User
+    public BmiRecord(User user, String ipAddress, Double weightKg, Double heightCm,
+                     Double bmiValue, String category) {
+        this.user = user;
         this.ipAddress = ipAddress;
         this.weightKg = weightKg;
         this.heightCm = heightCm;
@@ -69,4 +86,8 @@ public class BmiRecord {
 
     public LocalDateTime getCalculatedAt() { return calculatedAt; }
     public void setCalculatedAt(LocalDateTime calculatedAt) { this.calculatedAt = calculatedAt; }
+
+    // ✅ Getter et Setter pour User
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 }

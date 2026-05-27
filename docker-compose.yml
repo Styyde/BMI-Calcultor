@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # Base de données PostgreSQL
+  postgres:
+    image: postgres:13
+    container_name: bmi-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bmicalculator}
+      POSTGRES_USER: ${POSTGRES_USER:-bmi_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mysecretpassword}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - bmi-network
+    restart: unless-stopped
+
+  # Backend Spring Boot
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bmi-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-bmicalculator}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-bmi_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-mysecretpassword}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      CORS_ORIGINS: http://localhost:3000,http://frontend:80
+    ports:
+      - "8081:8081"
+    networks:
+      - bmi-network
+    restart: unless-stopped
+
+  # Frontend React/Vite avec Nginx
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bmi-frontend
+    ports:
+      - "3000:80"
+    networks:
+      - bmi-network
+    restart: unless-stopped
+
+networks:
+  bmi-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
