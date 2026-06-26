@@ -1,0 +1,20 @@
+# Ignorer les dossiers de configuration locale de Terraform
+.terraform/
+
+# Ignorer les fichiers de log et d'état locaux s'il y en a
+*.tfstate
+*.tfstate.*
+
+# Ignorer les fichiers de variables qui pourraient contenir des secrets
+*.tfvars
+*.tfvars.json
+
+# Ignorer les variables d'environnement locales
+.env
+.env.*
+
+# Ignorer les fichiers de crash ou d'override
+crash.log
+*.page
+override.tf
+override.tf.json
