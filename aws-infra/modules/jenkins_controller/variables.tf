@@ -31,5 +31,5 @@ variable "eks_nodes_sg_id" {
 variable "ami_id" {
   type        = string
   description = "AMI ID (ex: Amazon Linux 2023 ou Ubuntu) pour l'instance"
-  default     = "ami-045a8ab02132515f4" # Exemple d'AMI Amazon Linux 2 dans eu-west-3
+  default     = "ami-0f54908a1f0d2a5b9" 
 }

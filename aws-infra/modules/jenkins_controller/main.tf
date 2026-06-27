@@ -55,7 +55,7 @@ resource "aws_instance" "jenkins_controller" {
             #!/bin/bash
             yum update -y
             # Indispensable pour Git et Java
-            yum install java-17-amazon-corretto git -y
+            yum install java-21-amazon-corretto git -y
 
             # Installation de Jenkins
             wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
@@ -126,7 +126,7 @@ resource "aws_instance" "jenkins_controller" {
 # Volume EBS persistant pour le répertoire /var/jenkins_home
 resource "aws_ebs_volume" "jenkins_home" {
   availability_zone = aws_instance.jenkins_controller.availability_zone
-  size              = 30
+  size              = 10
   type              = "gp3" # Performance moderne et économique
 
   tags = {

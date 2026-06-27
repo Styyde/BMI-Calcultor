@@ -28,11 +28,11 @@ module "eks" {
       capacity_type = "SPOT"
       # Élasticté poussée à 10 nœuds pour absorber les vagues de builds des agents Jenkins
       min_size     = 1
-      max_size     = 10
+      max_size     = 5
       desired_size = 2
 
       # Extension du stockage pour le cache des builds Docker et dépendances (Maven/NPM)
-      disk_size = 30
+      disk_size = 15
 
       # Labels utiles pour isoler vos agents Jenkins via nodeSelector si nécessaire
       labels = {
