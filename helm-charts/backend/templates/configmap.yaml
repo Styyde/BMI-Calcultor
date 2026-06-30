@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "backend.fullname" . }}-config
+  labels:
+    {{- include "backend.labels" . | nindent 4 }}
+data:
+  DB_HOST: "{{ .Values.env.database.host }}"
+  DB_PORT: "{{ .Values.env.database.port }}"
+  DB_NAME: "{{ .Values.env.database.name }}"
+  SPRING_PROFILES_ACTIVE: "{{ .Values.env.springProfile }}"
