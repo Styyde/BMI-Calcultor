@@ -32,7 +32,7 @@ spec:
     lifecycle:
       postStart:
         exec:
-          command: ["/bin/sh", "-c", "yum install -y tar gzip jq && curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 && chmod 700 get_helm.sh && ./get_helm.sh"]
+           command: ["/bin/sh", "-c", "curl -s https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash"]
   volumes:
   - name: docker-config
     emptyDir: {}
@@ -156,7 +156,7 @@ EOF
                        
                         echo "--- Déploiement Backend ---"
                         sh """
-                        helm upgrade --install backend-release ./helm/helm-charts/backend \
+                        helm upgrade --install backend-release .helm/helm-charts/backend \
                           --namespace ${K8S_NAMESPACE} \
                           --values /tmp/values-${BUILD_NUMBER}.yaml \
                           --timeout 10m
