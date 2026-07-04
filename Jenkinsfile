@@ -156,7 +156,7 @@ EOF
                        
                         echo "--- Déploiement Backend ---"
                         sh """
-                        helm upgrade --install backend-release ./helm-charts/backend \
+                        helm upgrade --install backend-release ./helm/helm-charts/backend \
                           --namespace ${K8S_NAMESPACE} \
                           --values /tmp/values-${BUILD_NUMBER}.yaml \
                           --timeout 10m
@@ -164,7 +164,7 @@ EOF
                        
                         echo "--- Déploiement Frontend ---"
                         sh """
-                        helm upgrade --install frontend-release ./helm-charts/frontend \
+                        helm upgrade --install frontend-release ./helm/helm-charts/frontend \
                           --namespace ${K8S_NAMESPACE} \
                           --values /tmp/values-${BUILD_NUMBER}.yaml \
                           --timeout 10m
