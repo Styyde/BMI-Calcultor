@@ -26,6 +26,13 @@ spec:
     image: amazon/aws-cli:latest
     command: ['cat']
     tty: true
+    resources:
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
     volumeMounts:
       - name: docker-config
         mountPath: /kaniko/.docker
@@ -222,26 +229,20 @@ EOF
 
     post {
         success {
-            container('aws-helm') {
-                script {
-                    echo "✅ Pipeline réussi pour le build ${IMAGE_TAG}"
-                    echo "🔗 Jenkins: https://jenkins.kolynois.com"
-                    echo "🔗 Application: https://app.kolynois.com"
-                }
+            script {
+                echo "✅ Pipeline réussi pour le build ${IMAGE_TAG}"
+                echo "🔗 Jenkins: https://jenkins.kolynois.com"
+                echo "🔗 Application: https://app.kolynois.com"
             }
         }
         failure {
-            container('aws-helm') {
-                script {
-                    echo "❌ Pipeline échoué pour le build ${IMAGE_TAG}"
-                }
+            script {
+                echo "❌ Pipeline échoué pour le build ${IMAGE_TAG}"
             }
         }
         always {
-            container('aws-helm') {
-                script {
-                    sh "rm -f /tmp/values-*.yaml || true"
-                }
+            script {
+                echo "✅ Fin d'exécution du pipeline. Le pod Kubernetes éphémère et ses fichiers temporaires seront automatiquement détruits."
             }
         }
     }
