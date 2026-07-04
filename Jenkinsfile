@@ -23,7 +23,6 @@ spec:
       - name: docker-config
         mountPath: /kaniko/.docker
   - name: aws-helm
-    # ⬇️ Image contenant déjà aws, helm, kubectl
     image: 269809344861.dkr.ecr.eu-west-3.amazonaws.com/aws-helm-kubectl:latest
     command: ['cat']
     tty: true
@@ -51,8 +50,6 @@ spec:
     }
    
     stages {
-        // Plus besoin de stage Install Helm – les outils sont déjà présents
-
         stage('Fetch Infra State (SSM)') {
             steps {
                 container('aws-helm') {
@@ -73,6 +70,7 @@ spec:
                 }
             }
         }
+
         stage('Backend: Test & Compile') {
             steps {
                 container('maven') {
@@ -82,6 +80,7 @@ spec:
                 }
             }
         }
+
         stage('Frontend: Test & Compile') {
             steps {
                 container('node') {
@@ -92,6 +91,7 @@ spec:
                 }
             }
         }
+
         stage('Build & Push to ECR (Kaniko)') {
             steps {
                 container('aws-helm') {
@@ -115,61 +115,50 @@ spec:
                 }
             }
         }
+
         stage('Deploy via Helm') {
             steps {
                 container('aws-helm') {
                     script {
                         sh "kubectl create namespace ${K8S_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -"
                         sh "aws eks update-kubeconfig --region ${AWS_REGION} --name ci-cd-project-eks"
-                        sh """
-                        cat > /tmp/values-${BUILD_NUMBER}.yaml << EOF
-backend:
-  image:
-    repository: ${env.ECR_BACKEND}
-    tag: ${IMAGE_TAG}
-    pullPolicy: Always
-  env:
-    database:
-      host: ${env.RDS_HOST}
-      password: ${env.DB_PASSWORD}
-      username: dbadmin
-      name: bmicalculator
-      port: 5432
-    springProfile: prod
-frontend:
-  image:
-    repository: ${env.ECR_FRONTEND}
-    tag: ${IMAGE_TAG}
-    pullPolicy: Always
-  ingress:
-    enabled: true
-    hostname: app.kolynois.com
-    annotations:
-      alb.ingress.kubernetes.io/scheme: internet-facing
-      alb.ingress.kubernetes.io/target-type: ip
-      alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
-      alb.ingress.kubernetes.io/certificate-arn: ${env.APP_CERT_ARN}
-EOF
-                        """
+               
                         echo "--- Déploiement Backend ---"
                         sh """
                         helm upgrade --install backend-release ./helm/helm-charts/backend \
                           --namespace ${K8S_NAMESPACE} \
-                          --values /tmp/values-${BUILD_NUMBER}.yaml \
+                          --set image.repository=${env.ECR_BACKEND} \
+                          --set image.tag=${IMAGE_TAG} \
+                          --set image.pullPolicy=Always \
+                          --set env.database.host=${env.RDS_HOST} \
+                          --set env.database.password='${env.DB_PASSWORD}' \
+                          --set env.database.username=dbadmin \
+                          --set env.database.name=bmicalculator \
+                          --set env.database.port=5432 \
+                          --set springProfile=prod \
                           --timeout 10m
                         """
+               
                         echo "--- Déploiement Frontend ---"
                         sh """
                         helm upgrade --install frontend-release ./helm/helm-charts/frontend \
                           --namespace ${K8S_NAMESPACE} \
-                          --values /tmp/values-${BUILD_NUMBER}.yaml \
+                          --set image.repository=${env.ECR_FRONTEND} \
+                          --set image.tag=${IMAGE_TAG} \
+                          --set image.pullPolicy=Always \
+                          --set ingress.enabled=true \
+                          --set ingress.hostname=app.kolynois.com \
+                          --set ingress.annotations."alb\\.ingress\\.kubernetes\\.io/scheme"=internet-facing \
+                          --set ingress.annotations."alb\\.ingress\\.kubernetes\\.io/target-type"=ip \
+                          --set ingress.annotations."alb\\.ingress\\.kubernetes\\.io/listen-ports"='[{"HTTPS":443}]' \
+                          --set ingress.annotations."alb\\.ingress\\.kubernetes\\.io/certificate-arn"=${env.APP_CERT_ARN} \
                           --timeout 10m
                         """
-                        sh "rm -f /tmp/values-${BUILD_NUMBER}.yaml"
                     }
                 }
             }
         }
+
         stage('Install FluentBit (Logging)') {
             steps {
                 container('aws-helm') {
@@ -203,6 +192,7 @@ EOF
             }
         }
     }
+
     post {
         success {
             script {
