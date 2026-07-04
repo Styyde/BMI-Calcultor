@@ -113,3 +113,16 @@ resource "aws_eks_access_policy_association" "jenkins_controller_admin" {
     type = "cluster"
   }
 }
+resource "aws_eks_access_entry" "jenkins_pod" {
+  cluster_name  = module.eks.cluster_name
+  principal_arn = module.jenkins_pod_irsa.iam_role_arn
+  type          = "STANDARD"
+}
+resource "aws_eks_access_policy_association" "jenkins_pod_admin" {
+  cluster_name  = module.eks.cluster_name
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  principal_arn = module.jenkins_pod_irsa.iam_role_arn
+  access_scope {
+    type = "cluster"
+  }
+}
