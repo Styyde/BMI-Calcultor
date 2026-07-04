@@ -23,7 +23,8 @@ spec:
       - name: docker-config
         mountPath: /kaniko/.docker
   - name: aws-helm
-    image: amazon/aws-cli:latest
+    # ⬇️ Image contenant déjà aws, helm, kubectl
+    image: carlosjgp/aws-helm-kubectl:latest
     command: ['cat']
     tty: true
     resources:
@@ -36,7 +37,6 @@ spec:
     volumeMounts:
       - name: docker-config
         mountPath: /kaniko/.docker
-    # SUPPRESSION du lifecycle/postStart
   volumes:
   - name: docker-config
     emptyDir: {}
@@ -51,43 +51,20 @@ spec:
     }
    
     stages {
-        // ⬇️ NOUVEAU STAGE : Installation de Helm
-        stage('Install Helm') {
-            steps {
-                container('aws-helm') {
-                    script {
-                        sh '''
-                        if ! command -v helm &> /dev/null; then
-                            echo "Helm non trouvé, installation en cours..."
-                            curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-                            chmod 700 get_helm.sh
-                            ./get_helm.sh
-                            rm -f get_helm.sh
-                        else
-                            echo "Helm déjà installé"
-                        fi
-                        helm version
-                        '''
-                    }
-                }
-            }
-        }
+        // Plus besoin de stage Install Helm – les outils sont déjà présents
 
         stage('Fetch Infra State (SSM)') {
             steps {
                 container('aws-helm') {
                     script {
                         echo "--- Récupération des variables depuis AWS SSM Parameter Store ---"
-                       
                         env.DB_PASSWORD = sh(script: "aws ssm get-parameter --name '/cicd/rds/password' --with-decryption --query 'Parameter.Value' --output text", returnStdout: true).trim()
                         env.ECR_BACKEND = sh(script: "aws ssm get-parameter --name '/cicd/ecr/backend_url' --query 'Parameter.Value' --output text", returnStdout: true).trim()
                         env.ECR_FRONTEND = sh(script: "aws ssm get-parameter --name '/cicd/ecr/frontend_url' --query 'Parameter.Value' --output text", returnStdout: true).trim()
                         env.RDS_ENDPOINT = sh(script: "aws ssm get-parameter --name '/cicd/rds/endpoint' --query 'Parameter.Value' --output text", returnStdout: true).trim()
                         env.APP_CERT_ARN = sh(script: "aws ssm get-parameter --name '/cicd/app/cert_arn' --query 'Parameter.Value' --output text", returnStdout: true).trim()
-                       
                         def rds_host = env.RDS_ENDPOINT.split(':')[0]
                         env.RDS_HOST = rds_host
-                       
                         echo "✅ Backend ECR : ${env.ECR_BACKEND}"
                         echo "✅ Frontend ECR: ${env.ECR_FRONTEND}"
                         echo "✅ RDS Host: ${env.RDS_HOST}"
@@ -142,13 +119,8 @@ spec:
             steps {
                 container('aws-helm') {
                     script {
-                        // Créer le namespace s'il n'existe pas
                         sh "kubectl create namespace ${K8S_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -"
-                       
-                        // Mettre à jour kubeconfig
                         sh "aws eks update-kubeconfig --region ${AWS_REGION} --name ci-cd-project-eks"
-                       
-                        // Créer un fichier values temporaire
                         sh """
                         cat > /tmp/values-${BUILD_NUMBER}.yaml << EOF
 backend:
@@ -179,7 +151,6 @@ frontend:
       alb.ingress.kubernetes.io/certificate-arn: ${env.APP_CERT_ARN}
 EOF
                         """
-                       
                         echo "--- Déploiement Backend ---"
                         sh """
                         helm upgrade --install backend-release ./helm/helm-charts/backend \
@@ -187,7 +158,6 @@ EOF
                           --values /tmp/values-${BUILD_NUMBER}.yaml \
                           --timeout 10m
                         """
-                       
                         echo "--- Déploiement Frontend ---"
                         sh """
                         helm upgrade --install frontend-release ./helm/helm-charts/frontend \
@@ -195,31 +165,23 @@ EOF
                           --values /tmp/values-${BUILD_NUMBER}.yaml \
                           --timeout 10m
                         """
-                       
-                        // Nettoyer le fichier temporaire
                         sh "rm -f /tmp/values-${BUILD_NUMBER}.yaml"
                     }
                 }
             }
         }
-
-        // ====================== STAGE FLUENTBIT CORRIGÉ ======================
         stage('Install FluentBit (Logging)') {
             steps {
                 container('aws-helm') {
                     script {
                         echo "--- Installation de AWS for Fluent Bit avec IRSA ---"
-                        
                         sh "helm repo add eks https://aws.github.io/eks-charts || true"
                         sh "helm repo update"
-                        
                         def FLUENTBIT_ROLE_ARN = sh(
                             script: "aws ssm get-parameter --name '/cicd/fluentbit/role_arn' --query 'Parameter.Value' --output text",
                             returnStdout: true
                         ).trim()
-                        
                         echo "✅ FluentBit Role ARN récupéré : ${FLUENTBIT_ROLE_ARN}"
-                        
                         sh """
                         helm upgrade --install aws-for-fluent-bit eks/aws-for-fluent-bit \
                           --namespace kube-system \
@@ -235,14 +197,12 @@ EOF
                           --set tolerations[0].operator=Exists \
                           --timeout 10m0s
                         """
-                        
                         echo "✅ AWS for Fluent Bit déployé / mis à jour avec succès"
                     }
                 }
             }
         }
-    } // Fin des stages
-
+    }
     post {
         success {
             script {
