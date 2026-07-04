@@ -24,7 +24,7 @@ spec:
         mountPath: /kaniko/.docker
   - name: aws-helm
     # ⬇️ Image contenant déjà aws, helm, kubectl
-    image: carlosjgp/aws-helm-kubectl:latest
+    image: 269809344861.dkr.ecr.eu-west-3.amazonaws.com/aws-helm-kubectl:latest
     command: ['cat']
     tty: true
     resources:
