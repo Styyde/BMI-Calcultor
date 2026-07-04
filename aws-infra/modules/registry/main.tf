@@ -1,24 +1,35 @@
-variable "repo_name" {
-  description = "Nom du repository ECR"
-  type        = string
-  default     = "ci-cd-backend-repo"
-}
-
-resource "aws_ecr_repository" "app_repo" {
-  name                 = var.repo_name
-  image_tag_mutability = "MUTABLE" # Permet d'écraser le tag 'latest' pendant le développement
-
-  # Touche de sécurité très appréciée en entretien :
+# ==========================================
+# REPOSITORY BACKEND
+# ==========================================
+resource "aws_ecr_repository" "backend_repo" {
+  name                 = "${var.project_name}-backend-repo"
+  image_tag_mutability = "MUTABLE"
+  
   image_scanning_configuration {
     scan_on_push = true
   }
-
+  
   tags = {
-    Environment = "dev"
-    Project     = "ci-cd-project"
+    Name= "${var.project_name}-backend-repo"
+    Project= var.project_name
+    Service= "backend"
   }
 }
 
-output "repository_url" {
-  value = aws_ecr_repository.app_repo.repository_url
+# ==========================================
+# REPOSITORY FRONTEND
+# ==========================================
+resource "aws_ecr_repository" "frontend_repo" {
+  name                 = "${var.project_name}-frontend-repo"
+  image_tag_mutability = "MUTABLE"
+  
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+  
+  tags = {
+    Name="${var.project_name}-frontend-repo"
+    Project= var.project_name
+    Service= "frontend"
+  }
 }

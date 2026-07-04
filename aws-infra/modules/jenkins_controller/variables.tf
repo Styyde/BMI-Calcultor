@@ -1,6 +1,6 @@
 variable "project_name" {
-  type        = string
-  default     = "ci-cd-project"
+  type    = string
+  default = "ci-cd-project"
 }
 
 variable "vpc_id" {
@@ -13,23 +13,20 @@ variable "vpc_cidr" {
   description = "Le bloc CIDR du VPC pour restreindre l'accès au port 8080"
 }
 
-variable "eks_cluster_sg_id" {
-  type        = string
-  description = "L'ID du Security Group du cluster EKS pour autoriser le flux JNLP"
+variable "private_subnet_ids" {
+  type        = list(string)
+  description = "Liste des sous-réseaux privés (Multi-AZ) pour déployer l'ASG Jenkins"
 }
-
-variable "private_subnet_id" {
+variable "jenkins_certificate_arn" {
+  description = "ARN du certificat ACM pour jenkins.mondomaine.com"
   type        = string
-  description = "Le subnet privé (ex: AZ-a) où sera déployé l'instance Jenkins"
 }
-
-variable "eks_nodes_sg_id" {
-  type        = string
-  description = "L'ID du Security Group des Nodes EKS pour ouvrir le port JNLP 50000"
-}
-
 variable "ami_id" {
   type        = string
-  description = "AMI ID (ex: Amazon Linux 2023 ou Ubuntu) pour l'instance"
+  description = "AMI ID (Amazon Linux ou RHEL compatible yum) pour l'instance"
   default     = "ami-0f54908a1f0d2a5b9" 
+}
+variable "public_subnet_ids" {
+  description = "Liste des IDs des sous-réseaux publics pour l'ALB"
+  type        = list(string)
 }

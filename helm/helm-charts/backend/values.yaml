@@ -1,0 +1,19 @@
+replicaCount: 2
+
+image:
+  repository: "269809344861.dkr.ecr.eu-west-3.amazonaws.com/ci-cd-project-backend-repo"
+  tag: "latest"
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80          
+  targetPort: 8081  
+
+env:
+  database:
+    host: ""      # Injecté dynamiquement via --set env.database.host
+    port: "5432"
+    name: "bmicalculator"
+    username: "dbadmin"
+  springProfile: "prod"

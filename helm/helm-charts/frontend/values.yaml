@@ -12,7 +12,7 @@ service:
 
 ingress:
   enabled: true
-  hostname: "app.mondomaine.com"
+  hostname: "app.kolynois.com"
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip 

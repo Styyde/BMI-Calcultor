@@ -15,3 +15,18 @@ variable "db_password" {
   type        = string
   sensitive   = true # Masquage automatique dans les logs Terraform CLI
 }
+variable "ami_id" {
+  type        = string
+  description = "AMI ID pour l'instance Jenkins"
+  default     = "ami-0f54908a1f0d2a5b9"
+}
+variable "route53_zone_id" {
+  description = "L'ID de la zone Route53 pour la validation des certificats"
+  type        = string
+}
+variable "project_name" {
+  description = "Nom du projet pour le nommage des ressources"
+  type        = string
+  default     = "ci-cd-project"  
+}
+

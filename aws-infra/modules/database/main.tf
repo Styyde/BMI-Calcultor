@@ -46,7 +46,7 @@ resource "aws_db_instance" "postgres" {
   # HAUTE DISPONIBILITÉ : Déploie un master dans l'AZ-a et un standby synchrone dans l'AZ-b
   multi_az             = true 
 
-  db_name              = "applicationdb"
+  db_name              = "bmicalculator"
   username             = "dbadmin"
   password             = var.db_password
   

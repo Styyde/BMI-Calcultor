@@ -7,12 +7,21 @@ metadata:
     {{- include "frontend.labels" . | nindent 4 }}
   annotations:
     {{- toYaml .Values.ingress.annotations | nindent 4 }}
+    external-dns.alpha.kubernetes.io/hostname: "app.kolynois.com"   
 spec:
   ingressClassName: alb
   rules:
     - host: {{ .Values.ingress.hostname }}
       http:
         paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-service   
+                port:
+                  number: 80    
+          
           - path: /
             pathType: Prefix
             backend:

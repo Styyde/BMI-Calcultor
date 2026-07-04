@@ -29,19 +29,36 @@ output "commande_connexion_kubectl" {
   value       = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.eks.cluster_name}"
 }
 
-# --- OUTPUT JENKINS ---
-output "jenkins_private_ip" {
-  description = "L'IP privée du contrôleur Jenkins au sein du VPC"
-  value       = module.jenkins_controller.jenkins_private_ip
+output "ecr_backend_repo_url" {
+  description = "URL du repository ECR pour le backend"
+  value       = module.registry.backend_repository_url
 }
 
-# --- OUTPUTS DEPENDANCES ---
-output "ecr_repository_url" {
-  description = "L'URL de l'ECR pour pousser les images Docker de votre pipeline"
-  value       = module.registry.repository_url
+output "ecr_frontend_repo_url" {
+  description = "URL du repository ECR pour le frontend"
+  value       = module.registry.frontend_repository_url
 }
+
+output "ecr_backend_repo_name" {
+  description = "Nom du repository ECR pour le backend"
+  value       = module.registry.backend_repository_name
+}
+
+output "ecr_frontend_repo_name" {
+  description = "Nom du repository ECR pour le frontend"
+  value       = module.registry.frontend_repository_name
+}
+
 
 output "rds_endpoint" {
   description = "L'endpoint de connexion de la base de données PostgreSQL"
   value       = module.database.db_endpoint
+}
+output "jenkins_asg_name" {
+  description = "Le nom de l'Auto Scaling Group Jenkins"
+  value       = module.jenkins_controller.asg_name
+}
+output "jenkins_iam_role_arn" {
+  description = "L'ARN du rôle IAM Jenkins"
+  value       = module.jenkins_controller.iam_role_arn
 }

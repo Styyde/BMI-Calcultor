@@ -21,7 +21,7 @@ module "eks" {
   # Configuration du Managed Node Group optimisé pour la CI/CD
   eks_managed_node_groups = {
     jenkins_workers = {
-      ami_type       = "AL2_x86_64"
+      ami_type       = "AL2023_x86_64_STANDARD"
       
       # Diversification des instances pour éviter le manque de capacité AWS (Spot ou On-Demand)
       instance_types = ["t3.medium", "t3.large"]
