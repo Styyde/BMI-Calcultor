@@ -36,10 +36,7 @@ spec:
     volumeMounts:
       - name: docker-config
         mountPath: /kaniko/.docker
-    lifecycle:
-      postStart:
-        exec:
-           command: ["/bin/sh", "-c", "curl -s https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash"]
+    # SUPPRESSION du lifecycle/postStart
   volumes:
   - name: docker-config
     emptyDir: {}
@@ -54,6 +51,28 @@ spec:
     }
    
     stages {
+        // ⬇️ NOUVEAU STAGE : Installation de Helm
+        stage('Install Helm') {
+            steps {
+                container('aws-helm') {
+                    script {
+                        sh '''
+                        if ! command -v helm &> /dev/null; then
+                            echo "Helm non trouvé, installation en cours..."
+                            curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+                            chmod 700 get_helm.sh
+                            ./get_helm.sh
+                            rm -f get_helm.sh
+                        else
+                            echo "Helm déjà installé"
+                        fi
+                        helm version
+                        '''
+                    }
+                }
+            }
+        }
+
         stage('Fetch Infra State (SSM)') {
             steps {
                 container('aws-helm') {
@@ -163,7 +182,7 @@ EOF
                        
                         echo "--- Déploiement Backend ---"
                         sh """
-                        helm upgrade --install backend-release .helm/helm-charts/backend \
+                        helm upgrade --install backend-release ./helm/helm-charts/backend \
                           --namespace ${K8S_NAMESPACE} \
                           --values /tmp/values-${BUILD_NUMBER}.yaml \
                           --timeout 10m
@@ -191,11 +210,9 @@ EOF
                     script {
                         echo "--- Installation de AWS for Fluent Bit avec IRSA ---"
                         
-                        // Ajouter le repo Helm AWS EKS
                         sh "helm repo add eks https://aws.github.io/eks-charts || true"
                         sh "helm repo update"
                         
-                        // Récupération de l'ARN du rôle IAM (depuis SSM - recommandé)
                         def FLUENTBIT_ROLE_ARN = sh(
                             script: "aws ssm get-parameter --name '/cicd/fluentbit/role_arn' --query 'Parameter.Value' --output text",
                             returnStdout: true
@@ -203,7 +220,6 @@ EOF
                         
                         echo "✅ FluentBit Role ARN récupéré : ${FLUENTBIT_ROLE_ARN}"
                         
-                        // Installation avec le bon chart
                         sh """
                         helm upgrade --install aws-for-fluent-bit eks/aws-for-fluent-bit \
                           --namespace kube-system \
