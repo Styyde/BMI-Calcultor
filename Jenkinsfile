@@ -12,7 +12,7 @@ spec:
     command: ['cat']
     tty: true
   - name: node
-    image: node:18-alpine
+    image: node:22-alpine
     command: ['cat']
     tty: true
   - name: kaniko
