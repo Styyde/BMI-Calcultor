@@ -16,7 +16,7 @@ resource "aws_iam_policy" "jenkins_irsa_policy" {
           "ecr:InitiateLayerUpload",
           "ecr:UploadLayerPart",
           "ecr:CompleteLayerUpload",
-          "ecr:PutImage"
+          "ecr:PutImage",
         ]
         Resource = "*"
       },
@@ -24,7 +24,16 @@ resource "aws_iam_policy" "jenkins_irsa_policy" {
         Effect = "Allow"
         Action = [
           "ssm:GetParameter",
-          "ssm:GetParameters"
+          "ssm:GetParameters",
+        ]
+        Resource = "*"
+      },
+      # Permissions pour interagir avec EKS
+      {
+        Effect = "Allow"
+        Action = [
+          "eks:DescribeCluster",
+          "eks:ListClusters"
         ]
         Resource = "*"
       }
