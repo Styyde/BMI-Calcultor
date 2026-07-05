@@ -29,15 +29,13 @@ spec:
             - secretRef:
                 name: {{ include "backend.fullname" . }}-secret
           livenessProbe:
-            httpGet:
-              path: /api/actuator/health  
-              port: http
+            tcpSocket:
+              port: 8081
             initialDelaySeconds: 60
             periodSeconds: 10
           readinessProbe:
-            httpGet:
-              path: /api/actuator/health
-              port: http
+            tcpSocket:
+              port: 8081
             initialDelaySeconds: 60
             periodSeconds: 5
           resources:
