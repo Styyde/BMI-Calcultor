@@ -22,6 +22,11 @@ spec:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
               protocol: TCP
+          env:
+            - name: VITE_API_URL
+              value: {{ .Values.env.VITE_API_URL | quote }}
+            - name: VITE_USE_MOCKS
+              value: {{ .Values.env.VITE_USE_MOCKS | quote }}
           livenessProbe:
             httpGet:
               path: /

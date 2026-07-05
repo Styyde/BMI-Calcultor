@@ -82,14 +82,14 @@ spec:
         }
 
         stage('Frontend: Test & Compile') {
-            steps {
-                container('node') {
-                    dir('frontend') {
-                        sh 'npm ci'
-                        sh 'npm run build'
-                    }
-                }
+          steps {
+             container('node') {
+               dir('frontend') {
+                sh 'npm ci'
+                sh 'VITE_API_URL="" VITE_USE_MOCKS="false" npm run build'
+               }
             }
+         }
         }
 
         stage('Build & Push to ECR (Kaniko)') {

@@ -9,6 +9,9 @@ service:
   type: ClusterIP
   port: 80
   targetPort: 80
+env:
+  VITE_API_URL: ""
+  VITE_USE_MOCKS: "false"
 
 ingress:
   enabled: true

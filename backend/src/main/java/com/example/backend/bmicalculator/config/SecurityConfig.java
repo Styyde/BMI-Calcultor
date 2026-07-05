@@ -33,19 +33,20 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))  // ← MODIFIÉ : utilise la configuration CORS
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Routes publiques
-                        .requestMatchers("/api/auth/**", "/h2-console/**", "/api/actuator/health").permitAll()
-                        .requestMatchers("/api/bmi/stats").permitAll()
-                        // Stats publiques optionnel
-                        // Routes protégées
-                        .requestMatchers("/api/bmi/calculate/**").authenticated()
-                        .requestMatchers("/api/bmi/history").authenticated()
-                        .requestMatchers("/api/users/**").authenticated()
-                        // Admin seulement
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        // 🔓 Routes publiques (Sans le préfixe du context-path /api)
+                        .requestMatchers("/auth/**", "/h2-console/**", "/actuator/health").permitAll()
+                        .requestMatchers("/bmi/stats").permitAll()
+
+                        // 🔒 Routes protégées
+                        .requestMatchers("/bmi/calculate/**").authenticated()
+                        .requestMatchers("/bmi/history").authenticated()
+                        .requestMatchers("/users/**").authenticated()
+
+                        // 👑 Admin seulement
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
