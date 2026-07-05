@@ -18,7 +18,8 @@ import java.util.Map;
  * Gestionnaire global d'exceptions pour l'API BMI Calculator.
  * Capture et formate toutes les erreurs de manière cohérente.
  */
-@RestControllerAdvice
+// 🛠️ MODIFICATION ICI : Limite le scope au package controller de l'application
+@RestControllerAdvice(basePackages = "com.example.backend.bmicalculator.controller")
 public class GlobalExceptionHandler {
 
     /**
