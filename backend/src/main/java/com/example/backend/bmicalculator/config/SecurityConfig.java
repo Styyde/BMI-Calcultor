@@ -37,8 +37,9 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Routes publiques
-                        .requestMatchers("/api/auth/**", "/h2-console/**").permitAll()
-                        .requestMatchers("/api/bmi/stats").permitAll()  // Stats publiques optionnel
+                        .requestMatchers("/api/auth/**", "/h2-console/**", "/api/actuator/health").permitAll()
+                        .requestMatchers("/api/bmi/stats").permitAll()
+                        // Stats publiques optionnel
                         // Routes protégées
                         .requestMatchers("/api/bmi/calculate/**").authenticated()
                         .requestMatchers("/api/bmi/history").authenticated()
