@@ -18,7 +18,7 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
-@Slf4j  // ← Ajouter cette annotation
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider tokenProvider;
@@ -29,8 +29,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        String path = request.getServletPath();
-        if (path.startsWith("/api/auth/") || path.equals("/h2-console/")) {
+        // Utiliser l'URI complète (avec le contexte /api) pour identifier les routes publiques
+        String uri = request.getRequestURI();
+        if (uri.startsWith("/api/auth/") || uri.equals("/api/h2-console/")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -47,10 +48,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                log.debug("User authenticated: {}", email);  // ← log fonctionne maintenant
+                log.debug("User authenticated: {}", email);
             }
         } catch (Exception ex) {
-            log.error("Could not set user authentication in security context", ex);  // ← log fonctionne
+            log.error("Could not set user authentication in security context", ex);
         }
 
         filterChain.doFilter(request, response);
