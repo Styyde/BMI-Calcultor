@@ -135,6 +135,7 @@ spec:
                           --set env.database.username=dbadmin \
                           --set env.database.name=bmicalculator \
                           --set env.database.port=5432 \
+                          --set env.jpa.ddlAuto=update \
                           --set springProfile=prod \
                           --timeout 10m
                         """
