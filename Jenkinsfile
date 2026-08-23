@@ -75,8 +75,13 @@ spec:
             steps {
                 container('maven') {
                     dir('backend') {
-                        sh 'mvn clean package -DskipTests'
+                        sh 'mvn clean package'
                     }
+                }
+            }
+            post {
+                always {
+                    junit testResults: 'backend/target/surefire-reports/*.xml', allowEmptyResults: true
                 }
             }
         }
@@ -86,6 +91,7 @@ spec:
              container('node') {
                dir('frontend') {
                 sh 'npm ci'
+                sh 'npm test'
                 sh 'VITE_API_URL="" VITE_USE_MOCKS="false" npm run build'
                }
             }

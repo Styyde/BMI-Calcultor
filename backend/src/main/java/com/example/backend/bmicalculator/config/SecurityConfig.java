@@ -36,17 +36,17 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 🔓 Routes publiques (Sans le préfixe du context-path /api)
-                        .requestMatchers("/auth/**", "/h2-console/**", "/actuator/health").permitAll()
-                        .requestMatchers("/bmi/stats").permitAll()
+                        // 🔓 Routes publiques (avec le préfixe du context-path /api, tel que vu par Spring Security)
+                        .requestMatchers("/api/auth/**", "/api/h2-console/**", "/api/actuator/health").permitAll()
+                        .requestMatchers("/api/bmi/stats").permitAll()
 
                         // 🔒 Routes protégées
-                        .requestMatchers("/bmi/calculate/**").authenticated()
-                        .requestMatchers("/bmi/history").authenticated()
-                        .requestMatchers("/users/**").authenticated()
+                        .requestMatchers("/api/bmi/calculate/**").authenticated()
+                        .requestMatchers("/api/bmi/history").authenticated()
+                        .requestMatchers("/api/users/**").authenticated()
 
                         // 👑 Admin seulement
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
