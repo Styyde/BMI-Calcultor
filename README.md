@@ -406,8 +406,3 @@ security_groups = [aws_security_group.jenkins.id]
 | Infrastructure | Terraform `aws_cloudwatch_dashboard` | Dashboard `ci-cd-project-overview` |
 | Tests | Plugin JUnit | Rapports dans Jenkins |
 
----
-
-## Auteur
-
-**Kolynois** — projet de développement et de déploiement cloud-native sur AWS (Spring Boot · React · Terraform · EKS · Jenkins · Helm).
