@@ -36,7 +36,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 🔓 Routes publiques (avec le préfixe du context-path /api, tel que vu par Spring Security)
+                        // 🔓 Routes publiques
                         .requestMatchers("/api/auth/**", "/api/h2-console/**", "/api/actuator/health").permitAll()
                         .requestMatchers("/api/bmi/stats").permitAll()
 

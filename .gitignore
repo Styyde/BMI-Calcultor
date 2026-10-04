@@ -11,6 +11,10 @@
 **/.env
 **/.env.local
 
+# Fichiers d'environnement (secrets) — seuls les .env.example sont versionnés
+**/.env.*
+!**/.env.example
+
 # IDE
 .idea/
 *.iml

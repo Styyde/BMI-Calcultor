@@ -29,7 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // Utiliser l'URI complète (avec le contexte /api) pour identifier les routes publiques
+        // Les routes d'authentification sont publiques : pas de vérification du jeton
         String uri = request.getRequestURI();
         if (uri.startsWith("/api/auth/") || uri.equals("/api/h2-console/")) {
             filterChain.doFilter(request, response);
